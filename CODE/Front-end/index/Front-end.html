@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <!-- add title -->
+    <title>Map showing NYC</title>
+    <!-- import required libraries here -->
+    <!-- python -m http.server 8000 -->
+    <link rel="stylesheet" href="front-end.css">
+    <style>
+        /* define CSS rules here */
+    /* define CSS rules here */
+    #visualization_heading {
+            fill: rgb(69, 69, 69);
+            font-size: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            pointer-events: none;
+            font-weight: bold;
+	    }
+
+        .continent {
+            /* fill: grey; */
+            stroke: white;
+            stroke-width: 0.5;
+        }
+
+        .d3-tip {
+            line-height: 1;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .d3-tip .neighborhood {
+            font-weight: bold;
+        }
+
+        .d3-tip .time-info {
+            margin: 10px 3px 5px 3px;
+        }
+
+        /* Creates a small triangle extender for the tooltip */
+        .d3-tip:after {
+            box-sizing: border-box;
+            display: inline;
+            font-size: 10px;
+            width: 100%;
+            line-height: 1;
+            color: rgba(0, 0, 0, 0.8);
+            position: absolute;
+            pointer-events: none;
+        }
+
+        /* Northward tooltips */
+        .d3-tip.n:after {
+            content: "\25BC";
+            margin: -1px 0 0 0;
+            top: 100%;
+            left: 0;
+            text-align: center;
+        }
+
+        /* Eastward tooltips */
+        .d3-tip.e:after {
+            content: "\25C0";
+            margin: -4px 0 0 0;
+            top: 50%;
+            left: -8px;
+        }
+
+        /* Southward tooltips */
+        .d3-tip.s:after {
+            content: "\25B2";
+            margin: 0 0 1px 0;
+            top: -8px;
+            left: 0;
+            text-align: center;
+        }
+
+        /* Westward tooltips */
+        .d3-tip.w:after {
+            content: "\25B6";
+            margin: -4px 0 0 -1px;
+            top: 50%;
+            left: 100%;
+        }
+        
+    </style>
+
+    <title></title>
+</head>
+
+
+<body>
+    <!-- Add heading for the visualization -->
+    
+    <!-- Create dropdown element here. Options should be added after reading in game file, they should not be created here.-->
+    <div class="side-bar">
+        <label for="Select Time">Choose Time:</label>
+        <select name = "time" id ="TimeDropDown">
+            <option value="8AM - 11AM" selected>8:00 AM - 11:00 AM</option>
+            <option value="11AM - 4PM">11:00 AM - 4:00 PM</option>
+            <option value="4PM - 7PM">4:00 PM - 7:00 PM</option>
+            <option value="7PM - 10PM">7:00 PM - 10:00 PM</option>
+            <option value="10PM - 8AM">10:00 PM - 8:00 AM</option>
+        </select><br><br>
+
+        <label for="month">Choose Month:</label>
+        <select name="month" id="MonthDropDown">
+            <option value="1" name="January" selected>January</option>
+            <option value="2" name="February">February</option>
+            <option value="3" name="March">March</option>
+            <option value="4" name="April">April</option>
+            <option value="5" name="May">May</option>
+            <option value="6" name="June">June</option>
+            <option value="7" name="July">July</option>
+            <option value="8" name="August">August</option>
+            <option value="9" name="September">September</option>
+            <option value="10" name="October">October</option>
+            <option value="11" name="November">November</option>
+            <option value="12" name="December">December</option>
+        </select>
+        <br><br>
+
+        <label for="holidy">Choose Holiday:</label>
+        <select name="holiday" id="HolidayDropDown">
+            <option value="None" name="None" selected>None</option>
+            <option value="Martin Luther King Jr. Day" name="None" >Martin Luther King Jr. Day</option>
+            <option value="Christmas Eve" >Christmas Eve</option>
+            <option value="Christmas Day" >Christmas Day</option>
+            <option value="Mother's Day" >Mother's Day</option>
+            <option value="Halloween" >Halloween</option>
+            <option value="Labor Day" >Labor Day</option>
+            <option value="Valentine's Day" >Valentine's Day</option>
+            <option value="Father's Day" >Father's Day</option>
+            <option value="Columbus Day" >Columbus Day</option>
+            <option value="New Year's Eve" >New Year's Eve</option>
+            <option value="Easter Sunday" >Easter Sunday</option>
+            <option value="Memorial Day" >Memorial Day</option>
+            <option value="Independence Day" >Independence Day</option>
+            <option value="St. Patrick's Day" >St. Patrick's Day</option>
+            <option value="New Year's Day" >New Year's Day</option>
+            <option value="Washington's Birthday" >Washington's Birthday</option>
+            <option value="Administrative Professionals Day" >Administrative Professionals Day</option>
+            <option value="Tax Day" >Tax Day</option>
+            <option value="Day after Thanksgiving Day" >Day after Thanksgiving Day</option>
+            <option value="Election Day" >Election Day</option>
+            <option value="Veterans Day" >Veterans Day</option>
+            <option value="Thanksgiving Day" >Thanksgiving Day</option>
+            <option value="Independence Day (substitute day)" >Independence Day (substitute day)</option>
+            <option value="Christmas Day (substitute day)" >Christmas Day (substitute day)</option>
+            <option value="Juneteenth" >Juneteenth</option>
+            <option value="Juneteenth (substitute day)" >Juneteenth (substitute day)</option>
+            <option value="New Year's Day (substitute day)" >New Year's Day (substitute day)</option>
+        </select><br></br>
+
+        <label for="OriginDropdown">Choose Origin:</label>
+        <select name = "origin" id ="OriginDropdown"></select><br><br>
+
+        <label for="DestinationDropdown">Choose Destination:</label>
+        <select name = "destination" id ="DestinationDropdown"></select><br><br>
+
+        <label for="rain">
+            <input type="checkbox" id="rain" name="checkbox" value="isRain">  Rain 
+         </label>
+
+         <label for="snow">
+            <input type="checkbox" id="snow" name="checkbox" value="isSnow">  Snow 
+         </label>
+
+         <div class="range-slider" id="range-slider">
+            <div>Temperature (Farhenheit):</div>
+            <input class="range-slider__range" id='range-slider__range' type="range" value="70" min="10" max="100">
+            <span class="range-slider__value" id="range-slider__value">70</span>
+        </div>
+        <!--<input type="submit" value="Submit" id="submit">-->
+
+    </div>
+    <!-- append visualization svg to this div-->
+    <div id="choropleth"></div>
+    <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+    <script type="text/javascript" src="../lib/d3-dsv.min.js"></script>
+    <script type="text/javascript" src="../lib/d3-legend.min.js"></script>
+    <script type="text/javascript" src="../lib/d3-tip.min.js"></script>
+    <script>
+
+        var selectBox1 = d3.select("#OriginDropdown")
+        var selectBox2 = d3.select("#DestinationDropdown")
+        var selectBox3 = d3.select("#TimeDropDown")
+        var selectBox4 = d3.select("#MonthDropDown")
+        var selectBox5 = d3.select("#HolidayDropDown")
+        var checkBoxRain = document.getElementById("rain")
+        var checkBoxSnow = document.getElementById("snow")
+        var tempRangeSlider = document.getElementById("range-slider__range")
+        // enter code to define margin and dimensions for svg
+        var margin = ({top: 150, right: 150, bottom: 150, left: 150});
+        var width = 1500
+        var height = 600;
+        // enter code to create svg
+        var svg = d3
+                .select("#choropleth")
+                .append("svg")
+                .attr("id", "choropleth")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                
+
+        svg.append("text")
+        .attr("id", "credit")
+        .attr("x", width/2)
+        .attr("y",  height+margin.bottom)
+        .style("font-size", "17px").style('font-weight', 'bold')
+        .text("Team 21");
+        
+        // enter code to create color scale
+        var colorScale = d3.scaleLinear().range(["white", "blue"]);
+
+        // enter code to define tooltip
+        tip = d3.tip().attr("id", "tooltip")
+            .attr("class", "d3-tip")
+
+        // create legends
+        // blue: Uber/Lyft
+        // yellow: Taxi
+        // green: bike
+        // red: starting location
+        // black: destination
+        // grey: no information
+        
+        // create legend
+        svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 10).style("fill", "#0000FF")
+        svg.append("circle").attr("cx",200).attr("cy",170).attr("r", 10).style("fill", "#F7DE3A")
+        svg.append("circle").attr("cx",200).attr("cy",210).attr("r", 10).style("fill", "#00FF00")
+        svg.append("circle").attr("cx",200).attr("cy",250).attr("r", 10).style("fill", "#FF0000")
+        svg.append("circle").attr("cx",200).attr("cy",290).attr("r", 10).style("fill", "#000000")
+        svg.append("circle").attr("cx",200).attr("cy",330).attr("r", 10).style("fill", "#808080")
+        svg.append("text").attr("x", 220).attr("y", 130).text("Uber/Lyft Winning").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 220).attr("y", 170).text("Taxi Winning").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 220).attr("y", 210).text("Bike Winning").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 220).attr("y", 250).text("Starting Location").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 220).attr("y", 290).text("Destination").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 220).attr("y", 330).text("No Information").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        
+        // temperature scale: in Farhenheit and from 10F to 100F   
+        // select the range-slider element
+        const slider = document.getElementById('range-slider')
+        // select the range-slider__value element
+        const value = document.getElementById('range-slider__value')
+        // select the range-slider__range input element
+        const range = document.getElementById('range-slider__range')
+            
+        range.addEventListener('input', function() {
+            // update the value element with the value of the range input
+            value.innerHTML = range.value
+            // update the value of the range input
+            range.value = value.innerHTML
+            // update the color of the range input
+            range.style.background = `linear-gradient(to right, #F7DE3A 0%, #F7DE3A ${range.value}%, #FFFFFF ${range.value}%, white 100%)`
+        })
+        
+        /*const button = document.getElementById('submit')
+        button.onclick = function() {
+            fetch("http://127.0.0.1:5000/yellow_taxi_pred", {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({PULocationID: month: 1, hours: document.getElementById( "your-select-id" ).value, year: 2022})
+            })
+        }*/
+
+        // tooltip
+
+        // enter code to define projection and path required for Choropleth
+        // For grading, set the name of functions for projection and path as "projection" and "path"
+        var projection = d3.geoNaturalEarth1().scale(120000).translate([width / 2 - 50, height/2 + 150]);
+        var path = d3.geoPath().projection(projection);
+
+        // define any other global variables 
+        var gameData = [];
+        var world;
+        var err;
+
+        Promise.all([d3.json("map.json"), d3.dsv(",", "areas.csv"), d3.json("fhvhv_average_time.json"), d3.json("taxi_average_time.json"), d3.json("bike_average_time.json")])
+        .then((data) => 
+            {
+                console.log(data)
+                world = data[0]; 
+                areaData = data[1]; 
+                fhvhvData = data[2];
+                taxiData = data[3];
+                bikeData = data[4];
+                ready(err, world, areaData, fhvhvData, taxiData, bikeData);
+            }
+            // enter code to call ready() with required arguments
+        );
+        
+        // this function should be called once the data from files have been read
+        // world: topojson from world_countries.json
+        // gameData: data from ratings-by-country.csv
+        
+        async function ready(error, world, areaData, fhvhvData, taxiData, bikeData) {
+            
+            // enter code to extract all unique games from gameData
+            // console.log(areaData)
+            // console.log(world)
+            // console.log(fhvhvData)
+            // console.log(taxiData)
+            // console.log(bikeData)
+
+            //Filter areaData for areas having mapping in world
+            filteredAreaData = areaData.filter(d => {
+                included = false;
+                world.features.every(e => {
+                    if (e["properties"]["neighborhood"].includes(d.Zone)) {
+                        included = true;
+                        return false;
+                    }
+                    return true;
+                })
+                return included
+            })
+            // world.features.every(d => { 
+            //     if (d["properties"]["neighborhood"].includes(origin)) {
+            //         origin_included = true;
+            //         return false;
+            //     }
+            //     return true;
+            // })
+
+            var neighborhoods = [];
+            filteredAreaData.map(function(d) {
+                neighborhoods.push((d.Zone+", "+d.Borough));
+            })
+            // enter code to append the game options to the dropdown
+            selectBox1.selectAll("Options")
+            .data(neighborhoods)
+            .enter()
+            .append("option")
+            .attr("value", function(d) {return d})
+            .text(function(d) {return d})
+
+            selectBox2.selectAll("Options")
+            .data(neighborhoods)
+            .enter()
+            .append("option")
+            .attr("value", function(d) {return d})
+            .text(function(d) {return d})
+            
+            // event listener for the dropdown. Update choropleth and legend when selection changes. Call createMapAndLegend() with required arguments.
+            selectBox1.on("change", function() {
+                selectedAreaOrigin = d3.select(this).property("value")
+                selectedAreaDestination = d3.select("#DestinationDropdown").property("value")
+                selectedTime = d3.select("#TimeDropDown").property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+
+            selectBox2.on("change", function() {
+                selectedAreaDestination = d3.select(this).property("value")
+                selectedAreaOrigin = d3.select("#OriginDropdown").property("value")
+                selectedTime = d3.select("#TimeDropDown").property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+
+            selectBox3.on("change", function() {
+                selectedAreaDestination = d3.select("#DestinationDropdown").property("value")
+                selectedAreaOrigin = d3.select("#OriginDropdown").property("value")
+                selectedTime = d3.select(this).property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+
+            selectBox4.on("change", function() {
+                selectedAreaDestination = d3.select("#DestinationDropdown").property("value")
+                selectedAreaOrigin = d3.select("#OriginDropdown").property("value")
+                selectedTime = d3.select("#TimeDropDown").property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+
+            selectBox5.on("change", function() {
+                selectedAreaDestination = d3.select("#DestinationDropdown").property("value")
+                selectedAreaOrigin = d3.select("#OriginDropdown").property("value")
+                selectedTime = d3.select("#TimeDropDown").property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+
+            checkBoxRain.addEventListener("change", function () {
+                selectedAreaDestination = d3.select("#DestinationDropdown").property("value")
+                selectedAreaOrigin = d3.select("#OriginDropdown").property("value")
+                selectedTime = d3.select("#TimeDropDown").property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+
+            checkBoxSnow.addEventListener("change", function () {
+                selectedAreaDestination = d3.select("#DestinationDropdown").property("value")
+                selectedAreaOrigin = d3.select("#OriginDropdown").property("value")
+                selectedTime = d3.select("#TimeDropDown").property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+
+            tempRangeSlider.addEventListener("change", function () {
+                selectedAreaDestination = d3.select("#DestinationDropdown").property("value")
+                selectedAreaOrigin = d3.select("#OriginDropdown").property("value")
+                selectedTime = d3.select("#TimeDropDown").property("value")
+                getData().then(data => {
+                    console.log(data)
+                    taxiData = data[0]
+                    bikeData = data[1]
+                    fhvhvData = data[2]
+                    createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime)
+                })
+            })
+            
+            // create Choropleth with default option. Call createMapAndLegend() with required arguments. 
+            getData().then(data => {
+                console.log(data)
+                taxiData = data[0]
+                bikeData = data[1]
+                fhvhvData = data[2]
+                createMapAndLegend(world, filteredAreaData, fhvhvData, taxiData, bikeData, neighborhoods[0], neighborhoods[0], "8AM - 11AM")
+            })
+        }
+
+        // this function should create a Choropleth and legend using the world and gameData arguments for a selectedGame
+        // also use this function to update Choropleth and legend when a different game is selected from the dropdown
+        function createMapAndLegend(world, areaData, fhvhvData, taxiData, bikeData, selectedAreaOrigin, selectedAreaDestination, selectedTime){ 
+
+            var origin = selectedAreaOrigin.split(",")[0];
+            origin_included = false;
+            world.features.every(d => { 
+                if (d["properties"]["neighborhood"].includes(origin)) {
+                    origin_included = true;
+                    return false;
+                }
+                return true;
+            })
+
+            var center = d3.geoCentroid(world)
+            projection.center(center);
+            var path = d3.geoPath().projection(projection);
+
+            d3.select("#countries").remove()
+            d3.select("#legend").remove()
+            colorScale.domain([0, 5000])
+
+            let mouseOver = function(d) {
+                var destination = selectedAreaDestination.split(",")[0];
+                if (d["properties"]["neighborhood"].includes(destination)) {
+                    return
+                }
+                d3.select(this)
+                .style("stroke", "black")
+                .style("stroke-width", "5px")
+            }
+
+            let mouseLeave = function(d) {
+                var destination = selectedAreaDestination.split(",")[0];
+                if (d["properties"]["neighborhood"].includes(destination)) {
+                    return
+                }
+                d3.select(this)
+                .style("stroke-width", "0.5px")
+            }
+
+            tip.html(function(d) {
+                var time_content = returnTooltipContent(areaData, selectedAreaOrigin.split(",")[0], d["properties"]["neighborhood"], selectedTime, fhvhvData, taxiData, bikeData);
+                var content = `<div><text class='neighborhood'>From ${selectedAreaOrigin.split(",")[0]} to ${d.properties.neighborhood}</text></div>`;
+                for (var i = 0; i < time_content.length; i++) {
+                    content += time_content[i]
+                }
+                return content
+            })
+
+            svg.append("g").attr("id", "countries")
+            .selectAll("path")
+            .data(world.features)
+            .enter()
+            .append("path")
+            .attr("stroke-width", function(d) {
+                var destination = selectedAreaDestination.split(",")[0];
+                if (d["properties"]["neighborhood"].includes(destination)) {
+                    return  "10px"
+                }
+                return "0.5px"
+            })
+            .style("stroke", "black")
+            .attr("fill", function(d) 
+                { 
+                    if (!origin_included) {
+                        return "grey"
+                    }
+                    if(d["properties"]["neighborhood"].includes(origin)) {
+                        return "Red"
+                    } else {
+                        return returnColor(areaData, selectedAreaOrigin.split(",")[0], d["properties"]["neighborhood"], selectedTime, fhvhvData, taxiData, bikeData);
+                    }
+                })
+            .attr("d", path)
+            .on('mouseover', function(d) {
+                tip.show.call(this, d)
+                mouseOver.call(this, d)
+            })
+            .on('mouseout', function(d) {
+                tip.hide.call(this, d)
+                mouseLeave.call(this, d)
+            })
+            .call(tip)
+
+            // // create legend
+            // svg.append("g").attr("id", "legend")
+            // .attr("transform", "translate("+width+"," + 0 + ")");
+
+            // // var legend = d3.legendColor()
+            // // .labelFormat(d3.format("0.2f"))
+            // // .scale(colorScale)
+
+            // svg.select("#legend").call(legend)
+        }
+
+        async function getData() {
+            return await Promise.all([sendPost("taxi"), sendPost("bike"), sendPost("fhvhv")])
+        }
+
+        function sendPost(type) {
+
+            //Get appropriate endpoint to fetch from
+            type2Link = {"taxi": "http://127.0.0.1:5000/yellow_taxi_pred", "fhvhv": "http://127.0.0.1:5000/fhv_pred", "bike": "http://127.0.0.1:5000/bike_pred"}
+            link = type2Link[type]
+
+            hours_raw = String(d3.select("#TimeDropDown").property("value"))
+            hours_cleaned = hours_raw.substring(0, hours_raw.indexOf("M")-1) + "-"  +
+                hours_raw.substring(hours_raw.indexOf("M")+4, hours_raw.lastIndexOf("M")-1)
+
+            // find the PM and AM of the hour_raw
+            const dash_index = hours_raw.indexOf("-")
+            var first_hour = hours_raw.substring(0, hours_raw.indexOf("M")-1).trim()
+            const first_hour_topic = hours_raw.substring(dash_index-3, dash_index).trim()
+            if (first_hour_topic === "PM") {
+                first_hour = String(parseInt(first_hour) + 12)
+            }
+
+            var second_hour = hours_raw.substring(hours_raw.indexOf("M")+4, hours_raw.lastIndexOf("M")-1).trim()
+            const second_hour_topic = hours_raw.substring(hours_raw.length-2, hours_raw.length).trim()
+            if (second_hour_topic === "PM") {
+                second_hour = String(parseInt(second_hour) + 12)
+            }
+
+            hours_cleaned = first_hour + "-" + second_hour
+
+            currOriginLoc = 0
+            for (var i = 0; i < areaData.length; i++) {
+                if (areaData[i]['Zone'] === d3.select("#OriginDropdown").property("value").substring(0, d3.select("#OriginDropdown").property("value").indexOf(","))) {
+                    currOriginLoc = areaData[i]['LocationID']
+                    break
+                }
+            }
+            // collect dropoff location from the dropdown
+            dropoffLoc = d3.select("#DestinationDropdown").property("value")
+            DOLocationID = 0
+            for (var i = 0; i < areaData.length; i++){
+                if (areaData[i]['Zone'] === dropoffLoc.substring(0, dropoffLoc.indexOf(","))) {
+                    DOLocationID = areaData[i]['LocationID']
+                    break
+                }
+            }
+
+            // collect the holiday name from the dropdown
+            holidayName = d3.select("#HolidayDropDown").property("value")
+
+            // get value of the "rain" checkbox
+            const rained = document.getElementById("rain").checked
+
+            // get value of the 'snow' checkbox
+            const snowed = document.getElementById("snow").checked
+
+            // get value of the 'month' dropdown
+            const month = d3.select("#MonthDropDown").property("value")
+            
+            // get the value of the range slider
+            const temp = document.getElementById("range-slider__range").value
+
+            sendDict = {PULocation: parseInt(currOriginLoc),
+                TAVG: parseInt(temp), PRCP: rained, 
+                SNOW: snowed, month: month, hours: hours_cleaned, 
+                year: 2022, holiday_name: holidayName, DOLocation: parseInt(DOLocationID)}
+            // console.log(sendDict)
+
+            return fetch(link, {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                    'Accept': 'application/json',
+                    'Access-Control-Allow-Origin':'*'
+                },
+                body: JSON.stringify(sendDict)
+            }).then(res=> {
+                if (res.ok)
+                    return res.json()
+                else
+                    alert("Error: Issue with returning json")
+            }).then(jsonResponse=>{
+                // console.log(jsonResponse)
+                return jsonResponse
+            }).catch((err) => console.error(err));
+        }
+
+        function returnTooltipContent(areaData, selectedAreaOrigin, neighborhood, selectedTime, fhvhvData, taxiData, bikeData) {
+            origin_index = getIndex(areaData, selectedAreaOrigin)
+            neighborhood_index = getIndex(areaData, neighborhood)
+            if(origin_index == -1 || neighborhood_index == -1) {
+                return "No Data"
+            }
+            time_fhvhv = fhvhvData[neighborhood_index] == null ? 0 : fhvhvData[neighborhood_index]
+            time_taxi = taxiData[neighborhood_index] == null ? 0 : taxiData[neighborhood_index]
+            time_bike = bikeData[neighborhood_index] == null ? 0 : bikeData[neighborhood_index]
+            
+            var time_fhvhv_element = `<div class='time-info'><text>Uber/Lyft: ${time_fhvhv == 0 ? "No Data" : (time_fhvhv).toFixed(2) + " min"} </text></div>`;
+            var time_taxi_element = `<div class='time-info'><text>Taxi: ${time_taxi == 0 ? "No Data" : (time_taxi).toFixed(2) + " min"} </text></div>`;
+            var time_bike_element = `<div class='time-info'><text>Bike: ${time_bike == 0 ? "No Data" : (time_bike).toFixed(2) + " min"} </text></div>`;
+
+            return [time_fhvhv_element, time_taxi_element, time_bike_element]
+        }
+
+        function returnColor(areaData, selectedAreaOrigin, neighborhood, selectedTime, fhvhvData, taxiData, bikeData) {
+            origin_index = getIndex(areaData, selectedAreaOrigin)
+            neighborhood_index = getIndex(areaData, neighborhood)
+            if(origin_index == -1 || neighborhood_index == -1) {
+                return "grey"
+            }
+            time_fhvhv = fhvhvData[neighborhood_index] == null ? 0 : fhvhvData[neighborhood_index]
+            time_taxi = taxiData[neighborhood_index] == null ? 0 : taxiData[neighborhood_index]
+            time_bike = bikeData[neighborhood_index] == null ? 0 : bikeData[neighborhood_index]
+            
+            if (time_fhvhv == 0 && time_taxi == 0 && time_bike == 0) {
+                return "grey"
+            } else {
+                if (time_fhvhv == 0) {
+                    time_fhvhv = Number.MAX_SAFE_INTEGER
+                }
+                if (time_taxi == 0) {
+                    time_taxi = Number.MAX_SAFE_INTEGER
+                }
+                if (time_bike == 0) {
+                    time_bike = Number.MAX_SAFE_INTEGER
+                }
+                min_time = Math.min(time_fhvhv, time_taxi, time_bike)
+                if(min_time == time_fhvhv) {
+                    return "blue"
+                } else if(min_time == time_taxi) {
+                    return "yellow"
+                } else {
+                    return "green"
+                }
+                //return colorScale(time)
+            }
+        }
+
+        function getIndex(areaData, area) {
+            var index = -1;
+            areaData.every(d => {
+                if(d["Zone"] == area || area.includes(d["Zone"]) || d["Zone"].includes(area)) {
+                    index = parseInt(d["LocationID"]);
+                    return false;
+                }
+                return true;
+            })
+            return index;
+        }
+        
+    </script>
+
+</body>
+
+</html>
